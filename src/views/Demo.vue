@@ -1,37 +1,41 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import axios from 'axios'
 
 // 鉴权解决方案————JWT(JSON Web Token)
-// token
-const token = ref(null)
+const token = computed(() => sessionStorage.getItem('token'))
 // 用户名
+const userinfo = ref('')
+// 用户名、密码
 const username = ref('')
-// 表单元素
-const loginForm = ref(null)
+const password = ref('')
 // 校验模式
-const usernamePattern = /[^\s]{2}[^\s]*/g
-const passwordPattern = /[^\s]{6}[^\s]*/g
+const usernamePattern = /[^\s]{2}[^\s]*/
+const passwordPattern = /[^\s]{6}[^\s]*/
+// 校验通知
+const vertification = ref('')
 
 // 配置网络请求
-onMounted(() => {
-  loginForm.value.addEventListener('submit', (e) => {
-    const formData = {
-      username: e.target.username.value,
-      password: e.target.password.value
-    }
-    if (usernamePattern.test(formData.username) && passwordPattern.test(formData.password)) {
-      axios.post('/api/login', formData)
-        .then((res) => {
-          // 获取token
-          token.value = res.data.token
-        })
-    }else {
-      window.alert('Format error.')
-    }
-    e.preventDefault()
-  })  
-})
+function login() {
+  const formData = {
+    username: username.value,
+    password: password.value
+  }
+  console.log(formData)
+  if(usernamePattern.test(formData.username) && passwordPattern.test(formData.password)){
+    vertification.value = ''
+    axios.post('/api/login', formData)
+      .then((res) => {
+        // 获取并用session存储token
+        window.sessionStorage.setItem('token', res.data.token)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  }else {
+    vertification.value = '输入格式有误，请重新输入。'
+  }
+}
 
 function requestForUsername() {
   // POST请求的头部需要放在data后，而data不能胜率
@@ -40,12 +44,11 @@ function requestForUsername() {
       headers:
         // 注意：头部要使用JSON格式
         { 
-          'Authorization': `Bearer ${token.value}` 
+          'Authorization': `Bearer ${window.sessionStorage.getItem('token')}` 
         } 
     })
     .then((response) => {
-      console.log(response)
-      username.value = response.data.data
+      userinfo.value = response.data.data.username
     })
     .catch((err) => {
       console.log(err)
@@ -56,20 +59,30 @@ function requestForUsername() {
 <template>
   <p class="output">
     Username: fwio ;
-    Password: qwe12345
+    Password: qwe12345<br/>
+    {{vertification}}
   </p>
-  <form
-    ref="loginForm"
-    class="loginForm"
-    name="login">
-    <label class="inputLabel">用户名</label>
-    <input id="username" type="text" required/>
-    <br/><br/>
-    <label class="inputLabel">密码</label>
-    <input id="password" type="password" required/>
-    <br/><br/>
-    <input type="submit" value="登录"/>
-  </form>
+  <div class="flex-box">
+    <span class="inputLabel">
+      用户名
+      <input
+        v-model="username"
+        type="text"
+        required
+        @keyup.enter="login"/>    
+    </span>
+    <span class="inputLabel">
+      密码
+      <input
+        v-model="password"
+        type="password"
+        required
+        @keyup.enter="login"/>
+    </span>
+    <button @click="login">
+      登录
+    </button>
+  </div>
   <p class="output">
     服务端返回的token为：
   </p>
@@ -81,14 +94,17 @@ function requestForUsername() {
       获取用户信息
     </button>
     <p class="output">
-      {{username}}
+      {{userinfo}}
     </p>
   </div>
 </template>
 
 <style scoped>
-.loginForm{
-  text-align: right;
+.flex-box{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
 }
 .inputLabel{
   color: white;
