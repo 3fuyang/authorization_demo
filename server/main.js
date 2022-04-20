@@ -14,7 +14,7 @@ app
   .use(expressJWT({ 
     secret: secretKey,
     algorithms: ['HS256']
-   }).unless({ path: [/^\/login/] }))
+   }).unless({ path: [/\/login/] }))
   // 全局的错误处理
   .use((err, req, res, next) => {
     if(err.name === 'UnauthorizedError'){
@@ -34,9 +34,14 @@ app
 app.post('/login', (req, res) => {
   const data = req.body
   if (data.username === 'fwio' && data.password === 'qwe12345'){
-    const tokenStr = jwt.sign({ username: data.username}, secretKey, {
-      expiresIn: '120s'
-    })
+    const tokenStr = jwt.sign(
+      { 
+        username: data.username
+      }, 
+      secretKey, {
+        expiresIn: '120s'
+      }
+    )
     res.send({
       status: 200,
       message: '登录成功！',
@@ -52,11 +57,11 @@ app.post('/login', (req, res) => {
 
 // 接收客户端的token，进行解析并返回原加密字段（用户名）
 app.post('/userinfo', (req, res) => {
-  console.log(req.username)
   res.send({
     status: 200,
     message: '获取用户信息成功',
-    value: req.username
+    // 经过expressjwt中间件解析的token，其解码后的信息默认挂载于req.user中
+    data: req.user
   })
 })
 

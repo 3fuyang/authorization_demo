@@ -54,6 +54,10 @@ function requestForUsername() {
 </script>
 
 <template>
+  <p class="output">
+    Username: fwio ;
+    Password: qwe12345
+  </p>
   <form
     ref="loginForm"
     class="loginForm"
@@ -64,7 +68,7 @@ function requestForUsername() {
     <label class="inputLabel">密码</label>
     <input id="password" type="password" required/>
     <br/><br/>
-    <input type="submit" value="Log In"/>
+    <input type="submit" value="登录"/>
   </form>
   <p class="output">
     服务端返回的token为：
