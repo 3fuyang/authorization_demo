@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from 'vue'
 import axios from 'axios'
 
@@ -21,7 +21,6 @@ function login() {
     username: username.value,
     password: password.value
   }
-  console.log(formData)
   if(usernamePattern.test(formData.username) && passwordPattern.test(formData.password)){
     vertification.value = ''
     axios.post('/api/login', formData)
