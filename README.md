@@ -1,4 +1,4 @@
-# token_demo
+# authorization_demo
 fwio
 ## 简介
 这个Demo用于实验使用JWT(JSON Web Token)的鉴权(Authorization)方法。
