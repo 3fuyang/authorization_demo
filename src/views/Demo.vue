@@ -1,43 +1,75 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, h, onMounted } from 'vue'
 import axios from 'axios'
+import { NForm, NFormItem, FormInst, NInput, NButton, FormRules, useMessage, useNotification, FormItemRule } from 'naive-ui'
+
+const message = useMessage()
+const notification = useNotification()
+
+onMounted(() => {
+  notification.info({
+    content: '用户名:     fwio\n密码:   qwe12345',
+  })
+})
 
 // 鉴权解决方案————JWT(JSON Web Token)
-const token = computed(() => sessionStorage.getItem('token'))
+const token = ref('')
 // 用户名
 const userinfo = ref('')
-// 用户名、密码
-const username = ref('')
-const password = ref('')
-// 校验模式
-const usernamePattern = /[^\s]{2}[^\s]*/
-const passwordPattern = /[^\s]{6}[^\s]*/
-// 校验通知
-const vertification = ref('')
+
+// 表单类型与model对象
+class LoginForm {
+  username: string = ''
+  password: string = ''
+}
+const formData = ref<LoginForm>(new LoginForm())
+
+// 表单ref对象
+const formRef = ref<FormInst | null>(null)
+
+// 校验规则
+const rules: FormRules = {
+  username: [{
+    required: true,
+    validator: (rule: FormItemRule, value) => {
+      if (value !== 'fwio') {
+        return new Error('Username: fwio')
+      }
+    }
+  }],
+  password: [{
+    required: true,
+    validator: (rule: FormItemRule, value) => {
+      if (value !== 'qwe12345') {
+        return new Error('Password: qwe12345')
+      }
+    }
+  }]
+}
 
 // 配置网络请求
 function login() {
-  const formData = {
-    username: username.value,
-    password: password.value
-  }
-  if(usernamePattern.test(formData.username) && passwordPattern.test(formData.password)){
-    vertification.value = ''
-    axios.post('/api/login', formData)
-      .then((res) => {
-        // 获取并用session存储token
-        window.sessionStorage.setItem('token', res.data.token)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-  }else {
-    vertification.value = '输入格式有误，请重新输入。'
-  }
+  formRef.value?.validate((errors) => {
+    if (!errors) {
+      axios.post('/api/login', formData.value)
+        .then((res: any) => {
+          window.sessionStorage.setItem('token', res.data.token)
+          token.value = window.sessionStorage.getItem('token') as string
+          notification.create({
+            content: `服务端返回的 token 为：\n${res.data.token}`
+          })
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    } else {
+      message.error('这都能输错？')
+    }
+  })
 }
 
-function requestForUsername() {
-  // POST请求的头部需要放在data后，而data不能胜率
+function requestForUsername () {
+  // POST请求的头部需要放在data后，而data不能省略
   axios.post('/api/userinfo', null,
     { 
       headers:
@@ -48,6 +80,9 @@ function requestForUsername() {
     })
     .then((response) => {
       userinfo.value = response.data.data.username
+      notification.success({
+        content: `用户ID: ${userinfo.value}`
+      })
     })
     .catch((err) => {
       console.log(err)
@@ -56,79 +91,57 @@ function requestForUsername() {
 </script>
 
 <template>
-  <p class="output">
-    Username: fwio ;
-    Password: qwe12345<br/>
-    {{vertification}}
-  </p>
-  <div class="flex-box">
-    <span class="inputLabel">
-      用户名
-      <input
-        v-model="username"
-        type="text"
-        required
-        @keyup.enter="login"/>    
-    </span>
-    <span class="inputLabel">
-      密码
-      <input
-        v-model="password"
-        type="password"
-        required
-        @keyup.enter="login"/>
-    </span>
-    <button @click="login">
-      登录
-    </button>
-  </div>
-  <p class="output">
-    服务端返回的token为：
-  </p>
-  <p class="output">
-    {{token}}
-  </p>
-  <div class="infoBox" v-if="token">
-    <button class="button" @click="requestForUsername">
-      获取用户信息
-    </button>
-    <p class="output">
-      {{userinfo}}
-    </p>
+  <div class="w-full h-screen flex flex-col justify-center items-center">
+    <div class="border-gray-500 bg-white relative p-4 rounded-md bg-opacity-60">
+      <n-form
+        class="w-60"
+        :rules="rules"
+        :model="formData"
+        ref="formRef"
+        label-placement="left"
+        label-align="left">
+        <n-form-item
+          label="用户名"
+          path="username">
+          <n-input
+            class="!w-40"
+            v-model:value="formData.username"
+            placeholder="username"/>
+        </n-form-item>
+        <n-form-item
+          label="密码"
+          path="password">
+          <n-input
+            class="!w-40 ml-3.4"
+            v-model:value="formData.password"
+            type="password"
+            show-password-on="mousedown"
+            @keyup.enter="login"/>
+        </n-form-item>
+        <div class="flex justify-evenly items-center">
+          <n-button
+            type="info"
+            @click="login">
+            登录
+          </n-button>
+          <n-button
+            type="success"
+            v-if="token"
+            @click="requestForUsername">
+            请求用户信息
+          </n-button>
+        </div>
+      </n-form>      
+    </div>
   </div>
 </template>
 
 <style scoped>
-.flex-box{
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-end;
+.input {
+  @apply flex flex-col justify-center items-center;
 }
-.inputLabel{
-  color: white;
-}
-.output{
-  color: white;
-  font-weight: 600;
-  max-width: 40%;
-  word-wrap: break-word;
-  margin: .5em 0;
-}
-.output + .output{
-  margin-top: 0;
-}
-.infoBox{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.button{
-  outline: none;
-  background-color: white;
-  color: black;
-  cursor: pointer;
-  border: none;
-  box-sizing: border-box;
+
+.text {
+  @apply text-white font-normal max-w-40 break-words mx-2;
 }
 </style>

@@ -1,10 +1,11 @@
-const express = require('express')
-const app = express()
-
+import express from 'express'
 // jwt用于生成JWT字符串
-const jwt = require('jsonwebtoken')
+import jwt from 'jsonwebtoken'
 // express-jwt用于解析JWT字符串，将其还原成JSON对象
-const expressJWT = require('express-jwt')
+import expressJWT from 'express-jwt'
+import { AddressInfo } from 'net'
+
+const app = express()
 
 const secretKey = 'CentOS'
 
@@ -16,8 +17,8 @@ app
     algorithms: ['HS256']
    }).unless({ path: [/\/login/] }))
   // 全局的错误处理
-  .use((err, req, res, next) => {
-    if(err.name === 'UnauthorizedError'){
+  .use((err: any, req: any, res: any, next: (...args: any[]) => void) => {
+    if (err.name === 'UnauthorizedError') {
       res.send({
         status: 401,
         message: '无效的token'
@@ -33,7 +34,7 @@ app
 // 用户登录
 app.post('/login', (req, res) => {
   const data = req.body
-  if (data.username === 'fwio' && data.password === 'qwe12345'){
+  if (data.username === 'fwio' && data.password === 'qwe12345') {
     const tokenStr = jwt.sign(
       { 
         username: data.username
@@ -66,5 +67,5 @@ app.post('/userinfo', (req, res) => {
 })
 
 const server = app.listen('3001', () => {
-  console.log('Server is running at %s:%s', server.address().address, server.address().port)  
+  console.log('Server is running at %s:%s', (server.address() as AddressInfo).address, (server.address() as AddressInfo).port)  
 })

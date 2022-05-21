@@ -1,10 +1,20 @@
 <script setup lang="ts">
+import { NMessageProvider, NNotificationProvider } from 'naive-ui'
 import { RouterView } from 'vue-router'
+
 </script>
 
 <template>
-  <main class="rootWrapper">
-    <RouterView />
+  <main
+    class="bg-gradient-to-r from-green-500 via-blue-500 to-purple-500
+    flex flex-col justify-center items-center
+    w-full min-h-screen
+    ">
+    <n-message-provider>
+      <n-notification-provider>
+        <RouterView />
+      </n-notification-provider>
+    </n-message-provider>
   </main>
 </template>
 
@@ -13,14 +23,5 @@ import { RouterView } from 'vue-router'
 body{
   margin: 0;
   padding: 0;
-}
-.rootWrapper{
-  background-color: cadetblue;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  min-height: 100vh;
 }
 </style>
