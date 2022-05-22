@@ -6,9 +6,10 @@ import { RouterView } from 'vue-router'
 
 <template>
   <main
-    class="bg-gradient-to-r from-green-500 via-blue-500 to-purple-500
+    class="bg-gradient-to-tr from-green-500 via-blue-500 to-purple-500
     flex flex-col justify-center items-center
     w-full min-h-screen
+    animate-gradient
     ">
     <n-message-provider>
       <n-notification-provider>

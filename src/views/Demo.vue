@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, h, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { NForm, NFormItem, FormInst, NInput, NButton, FormRules, useMessage, useNotification, FormItemRule } from 'naive-ui'
 
@@ -55,12 +55,12 @@ function login() {
         .then((res: any) => {
           window.sessionStorage.setItem('token', res.data.token)
           token.value = window.sessionStorage.getItem('token') as string
-          notification.create({
-            content: `服务端返回的 token 为：\n${res.data.token}`
+          notification.info({
+            content: `服务端返回的 token 为：\n${res.data.token}\n已存入 sessionStorage`
           })
         })
         .catch((err) => {
-          console.log(err)
+          message.error('服务端错误')
         })
     } else {
       message.error('这都能输错？')
@@ -74,7 +74,7 @@ function requestForUsername () {
     { 
       headers:
         // 注意：头部要使用JSON格式
-        { 
+        {
           'Authorization': `Bearer ${window.sessionStorage.getItem('token')}` 
         } 
     })
@@ -106,7 +106,7 @@ function requestForUsername () {
           <n-input
             class="!w-40"
             v-model:value="formData.username"
-            placeholder="username"/>
+            placeholder="fwio"/>
         </n-form-item>
         <n-form-item
           label="密码"
@@ -116,6 +116,7 @@ function requestForUsername () {
             v-model:value="formData.password"
             type="password"
             show-password-on="mousedown"
+            placeholder="qwe12345"
             @keyup.enter="login"/>
         </n-form-item>
         <div class="flex justify-evenly items-center">

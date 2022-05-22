@@ -31,6 +31,11 @@ app
     }
   })
 
+app.get('/', (req, res) => {
+  res.end(JSON.stringify('Connected.'))
+})
+
+
 // 用户登录
 app.post('/login', (req, res) => {
   const data = req.body
